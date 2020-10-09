@@ -1,4 +1,4 @@
-import { Typography } from '@material-ui/core'
+import Typography from '@material-ui/core/Typography'
 import Container from '@material-ui/core/Container'
 import Head from 'next/head'
 
