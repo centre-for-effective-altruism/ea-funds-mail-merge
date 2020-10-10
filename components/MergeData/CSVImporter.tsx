@@ -1,6 +1,7 @@
 import { makeStyles, Button } from '@material-ui/core'
 import CSVReader, { IFileInfo } from 'react-csv-reader'
 import { useMergeData, isValidMergeData } from './context'
+import { Typography } from '@material-ui/core'
 
 const parserOptions = {
   header: true,
@@ -8,6 +9,7 @@ const parserOptions = {
   skipEmptyLines: true,
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const useStyles = makeStyles((theme) => ({
   root: {},
   csvReader: {
@@ -31,6 +33,9 @@ const CSVImporter: React.FC = () => {
 
   return (
     <>
+      <Typography variant="h4" gutterBottom>
+        Import merge data
+      </Typography>
       <CSVReader
         onFileLoaded={handleFileLoaded}
         parserOptions={parserOptions}

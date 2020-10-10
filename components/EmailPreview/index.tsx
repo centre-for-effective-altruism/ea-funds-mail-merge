@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
-  Templates,
   Template,
-  TemplateInList,
   TemplateValidationOptions,
   TemplateValidation,
 } from 'postmark/dist/client/models'
@@ -36,6 +34,7 @@ const EmailPreview: React.FC = () => {
 
   const getTemplatePreview = async (
     Template: Template,
+    // eslint-disable-next-line @typescript-eslint/ban-types
     TestRenderModel: object | undefined,
   ) => {
     const { Subject, HtmlBody, TextBody } = Template

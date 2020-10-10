@@ -1,4 +1,4 @@
-import { Divider, Typography } from '@material-ui/core'
+import { Typography } from '@material-ui/core'
 import RowScrubber from 'components/RowScrubber'
 import { get } from 'lodash'
 import { useMergeData } from './'

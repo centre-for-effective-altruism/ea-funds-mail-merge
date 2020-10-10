@@ -6,7 +6,11 @@ import {
   Select,
   MenuItem,
   Typography,
+  Divider,
 } from '@material-ui/core'
+import ChevronRightIcon from '@material-ui/icons/ChevronRight'
+import FileIcon from '@material-ui/icons/Description'
+import WorldIcon from '@material-ui/icons/Public'
 import ButtonLink from 'components/ButtonLink'
 import { useTemplates } from 'components/Templates'
 import { getPaths } from 'utils/object'
@@ -20,6 +24,7 @@ const FieldMapper: React.FC = () => {
     pathMapping,
     setPathMapping,
     visibleRowId,
+    fileName,
   } = useMergeData()
   const { selectedTemplateModel } = useTemplates()
   const paths = selectedTemplateModel ? getPaths(selectedTemplateModel) : null
@@ -60,8 +65,7 @@ const FieldMapper: React.FC = () => {
                     <ListItemText>{path}</ListItemText>
                   </Grid>
                   <Grid item xs={2}>
-                    {' '}
-                    {`-->`}{' '}
+                    <ChevronRightIcon />
                   </Grid>
                   <Grid item xs={5}>
                     <Select
@@ -70,13 +74,20 @@ const FieldMapper: React.FC = () => {
                       fullWidth
                     >
                       <MenuItem value={UNASSIGNED_FIELD}>
-                        <em>not selected</em>
+                        <em>not set</em>
+                      </MenuItem>
+                      <Divider />
+                      <MenuItem disabled>
+                        <FileIcon /> <strong>CSV Import ({fileName})</strong>
                       </MenuItem>
                       {columns.map(([key, val]) => (
-                        <MenuItem key={key} value={key}>
+                        <MenuItem key={key} value={`${key}`}>
                           {key} <em>({val})</em>
                         </MenuItem>
                       ))}
+                      <MenuItem disabled>
+                        <WorldIcon /> <strong>Global Data</strong>
+                      </MenuItem>
                     </Select>
                   </Grid>
                 </Grid>

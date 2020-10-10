@@ -1,15 +1,24 @@
-import { useState, createContext, useContext, useEffect } from 'react'
+import { useState, createContext, useContext } from 'react'
 import { useLocalStorage, getLocalStorageKeyFactory } from 'utils/hooks'
-import { set } from 'lodash'
+import { merge, set, omitBy } from 'lodash'
 
 export type TColumnValue = string | number | boolean | null
-export type TMergeData = Array<Record<string, TColumnValue>>
+export type TMergeDatum = Record<string, TColumnValue>
+export type TMergeData = Array<TMergeDatum>
 export type TPathMapping = Record<string, string | null>
 export type TTemplateDataModel = Record<string, string | null>[]
+export type TSenderDetails = {
+  first_name: string | null
+  last_name: string | null
+  full_name: string | null
+  email: string | null
+}
 
 export type MergeDataContextProps = {
   mergeData: TMergeData | null
   setMergeData: (mergeData: TMergeData | null) => void
+  globalData: TMergeDatum | null
+  setGlobalData: (mergeData: TMergeDatum) => void
   pathMapping: TPathMapping
   setPathMapping: (path: string, mergeDataField: string | null) => void
   fileName: string | null
@@ -53,12 +62,14 @@ export const getTemplateDataModel = (
 const initialContext: Readonly<Omit<
   MergeDataContextProps,
   | 'setMergeData'
+  | 'setGlobalData'
   | 'setPathMapping'
   | 'setFileName'
   | 'setVisibleRowId'
   | 'resetMergeData'
 >> = {
   mergeData: null,
+  globalData: null,
   pathMapping: {},
   fileName: null,
   visibleRowId: 0,
@@ -79,6 +90,10 @@ export const MergeDataProvider: React.FC = ({ children }) => {
     getLSKey('mergeData'),
     null as TMergeData | null,
   )
+  const [globalData, setGlobalData] = useLocalStorage(
+    getLSKey('globalData'),
+    null as TMergeDatum | null,
+  )
   const [pathMapping, setPathMapping] = useLocalStorage(
     getLSKey('pathMapping'),
     {} as TPathMapping,
@@ -96,6 +111,7 @@ export const MergeDataProvider: React.FC = ({ children }) => {
 
   const resetMergeData = () => {
     setMergeData(initialContext.mergeData)
+    setGlobalData(initialContext.globalData)
     setPathMapping(initialContext.pathMapping)
     setFileName(initialContext.fileName)
     setVisibleRowId(initialContext.visibleRowId)
@@ -105,6 +121,21 @@ export const MergeDataProvider: React.FC = ({ children }) => {
     mergeData,
     setMergeData: (mergeData: TMergeData | null) => {
       setMergeData(mergeData)
+    },
+    globalData,
+    setGlobalData: (globalDatum: TMergeDatum) => {
+      // merge the new data, unless the value === 'false', in which case remove it
+      const newData = omitBy(
+        merge(globalData, globalDatum),
+        (val) => val === false,
+      )
+      if (Object.keys(newData).length) {
+        setGlobalData({
+          ...newData,
+        })
+      } else {
+        setGlobalData(null)
+      }
     },
     pathMapping,
     setPathMapping: (path: string, mergeDataField: string | null) => {

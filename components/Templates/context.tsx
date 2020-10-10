@@ -1,4 +1,5 @@
-import { useState, createContext, useContext, useEffect } from 'react'
+import { createContext, useContext, useEffect } from 'react'
+import { merge } from 'lodash'
 import { useLocalStorage, getLocalStorageKeyFactory } from 'utils/hooks'
 import {
   Templates,
@@ -36,6 +37,16 @@ const { Provider } = TemplatesContext
 
 const LOCALSTORAGE_NAMESPACE = 'Templates'
 const getLSKey = getLocalStorageKeyFactory(LOCALSTORAGE_NAMESPACE)
+
+const templateDataModelDefaults = {
+  recipient: {
+    email: null,
+    first_name: null,
+    last_name: null,
+    cc: null,
+    bcc: null,
+  },
+}
 
 export const TemplatesProvider: React.FC = ({ children }) => {
   const [selectedTemplateAlias, setSelectedTemplateAlias] = useLocalStorage(
@@ -110,12 +121,14 @@ export const TemplatesProvider: React.FC = ({ children }) => {
   useEffect(() => {
     if (selectedTemplate) {
       getSelectedTemplateModel(selectedTemplate).then((model) =>
-        setSelectedTemplateModel(model),
+        setSelectedTemplateModel(merge(templateDataModelDefaults, model)),
       )
     } else {
       setSelectedTemplateModel(null)
     }
   }, [selectedTemplate])
+
+  console.log(selectedTemplateModel)
 
   const value = {
     selectedTemplateAlias,
