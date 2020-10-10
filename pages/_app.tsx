@@ -4,6 +4,9 @@ import { useEffect } from 'react'
 import { AppProps } from 'next/app'
 import Layout from 'components/Layout'
 
+import { TemplatesProvider } from 'components/Templates'
+import { MergeDataProvider } from 'components/MergeData'
+
 const sansSerifStack = 'Raleway, Helvetica, "Helvetica Neue", Arial, sans-serif'
 const serifStack = 'Merriweather, Georgia, Times, "Times New Roman", serif'
 
@@ -47,7 +50,7 @@ const theme = createMuiTheme({
   },
 })
 
-function MyApp({ Component, pageProps }: AppProps) {
+const App: React.FC<AppProps> = ({ Component, pageProps }) => {
   useEffect(() => {
     // Remove the server-side injected CSS.
     const jssStyles = document.querySelector('#jss-server-side')
@@ -60,13 +63,16 @@ function MyApp({ Component, pageProps }: AppProps) {
     <>
       <CssBaseline />
       <ThemeProvider theme={theme}>
-        <Layout>
-          <Component {...pageProps} />
-        </Layout>
-        {/* <Layout Component={() => <Component {...pageProps} />} /> */}
+        <TemplatesProvider>
+          <MergeDataProvider>
+            <Layout>
+              <Component {...pageProps} />
+            </Layout>
+          </MergeDataProvider>
+        </TemplatesProvider>
       </ThemeProvider>
     </>
   )
 }
 
-export default MyApp
+export default App

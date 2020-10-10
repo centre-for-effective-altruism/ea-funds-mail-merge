@@ -10,8 +10,13 @@
     "@material-ui/icons": "^4.9.1",
     "@material-ui/lab": "^4.0.0-alpha.56",
     "@material-ui/styles": "^4.10.0",
+    "@types/classnames": "^2.2.10",
+    "classnames": "^2.2.6",
+    "lodash": "^4.17.20",
     "next": "^9.5.4",
+    "postmark": "^2.6.0",
     "react": "^16.13.1",
+    "react-csv-reader": "^3.1.1",
     "react-dom": "^16.13.1"
   },
   "scripts": {
@@ -25,13 +30,14 @@
     "node": "^12.18"
   },
   "devDependencies": {
+    "@types/lodash": "^4.14.161",
+    "@types/node": "^14.11.8",
+    "@types/react": "^16.9.51",
     "@typescript-eslint/eslint-plugin": "^4.1.0",
     "@typescript-eslint/parser": "^4.1.0",
     "eslint": "^7.8.1",
     "eslint-config-prettier": "^6.11.0",
     "eslint-plugin-react": "^7.20.6",
-    "@types/node": "^14.11.8",
-    "@types/react": "^16.9.51",
     "prettier": "2.1.2",
     "typescript": "^4.0.3"
   }
