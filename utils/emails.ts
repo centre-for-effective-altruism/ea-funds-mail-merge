@@ -3,7 +3,6 @@ import {
   TTemplateDataModelRow,
 } from 'components/Templates/context'
 import { TMergeData, TGlobalDataModel } from 'components/MergeData/context'
-import omitDeep from 'omit-deep-lodash'
 
 export type TSenderDetails = {
   first_name: string | null
@@ -61,5 +60,5 @@ export const getFinalMergeData = (
     ...row,
     ...globalData,
   }))
-  return omitDeep({ model, globals: globalData }, null)
+  return { model, globals: globalData }
 }
