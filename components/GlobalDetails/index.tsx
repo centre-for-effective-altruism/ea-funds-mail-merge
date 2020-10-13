@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Divider,
   FormControl,
   Grid,
   Input,
@@ -38,10 +37,11 @@ const GlobalDetails: React.FC = () => {
     event: React.ChangeEvent<{ value: unknown }>,
   ) => {
     const val = event.target.value
-    console.log(key, val)
-    if (typeof val === 'string' && val !== null)
+    if (typeof val === 'string' && val !== null) {
       setGlobalData({ [key]: `${val}` })
-    else setGlobalData({ [key]: null })
+    } else {
+      setGlobalData({ [key]: null })
+    }
   }
 
   useEffect(() => {
@@ -99,7 +99,7 @@ const GlobalDetails: React.FC = () => {
                         <Input
                           autoFocus={key === addFieldValue}
                           id={`${key}-input`}
-                          value={globalData[key]}
+                          value={globalData[key] || ''}
                           onChange={(event) => handleDataChange(key, event)}
                         />
                       </FormControl>

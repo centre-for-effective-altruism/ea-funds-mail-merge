@@ -8,6 +8,17 @@ import {
   TemplateValidationOptions,
   TemplateValidation,
 } from 'postmark/dist/client/models'
+import { TSenderDetails } from 'utils/emails'
+
+export type TTemplateDataModelRowBase = string | number | boolean | null
+export type TTemplateDataModelRowDatum =
+  | TTemplateDataModelRowBase
+  | Record<string, TTemplateDataModelRowBase>
+export type TTemplateDataModelRow = {
+  recipient: TSenderDetails
+  [key: string]: TTemplateDataModelRowDatum
+}
+export type TTemplateDataModel = TTemplateDataModelRow[]
 
 type TemplatesContextProps = {
   templates: TemplateInList[]
@@ -15,7 +26,7 @@ type TemplatesContextProps = {
   selectedTemplate: Template | null
   setTemplate: (templateAlias: string | null) => void
   // eslint-disable-next-line @typescript-eslint/ban-types
-  selectedTemplateModel: object | null
+  selectedTemplateModel: Record<string, unknown> | null
   resetTemplates: () => void
 }
 
@@ -63,8 +74,7 @@ export const TemplatesProvider: React.FC = ({ children }) => {
   )
   const [selectedTemplateModel, setSelectedTemplateModel] = useLocalStorage(
     getLSKey('selectedTemplateModel'),
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    null as object | null,
+    null as Record<string, unknown> | null,
   )
 
   const getTemplates = async () => {
@@ -127,8 +137,6 @@ export const TemplatesProvider: React.FC = ({ children }) => {
       setSelectedTemplateModel(null)
     }
   }, [selectedTemplate])
-
-  console.log(selectedTemplateModel)
 
   const value = {
     selectedTemplateAlias,

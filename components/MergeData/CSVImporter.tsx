@@ -1,9 +1,11 @@
-import { makeStyles, Button } from '@material-ui/core'
-import CSVReader, { IFileInfo } from 'react-csv-reader'
+import { makeStyles, Button, Box } from '@material-ui/core'
+import CSVReader, { IFileInfo, CSVReaderProps } from 'react-csv-reader'
 import { useMergeData, isValidMergeData } from './context'
 import { Typography } from '@material-ui/core'
+import { useState } from 'react'
+import { Alert } from '@material-ui/lab'
 
-const parserOptions = {
+const parserOptions: CSVReaderProps['parserOptions'] = {
   header: true,
   dynamicTyping: true,
   skipEmptyLines: true,
@@ -19,15 +21,31 @@ const useStyles = makeStyles((theme) => ({
 
 const CSVImporter: React.FC = () => {
   const { setMergeData, setVisibleRowId, setFileName } = useMergeData()
+  const [error, setError] = useState(null as string | null)
   const classes = useStyles()
 
   const handleFileLoaded = (data: unknown[], fileInfo: IFileInfo) => {
-    if (isValidMergeData(data)) {
-      setVisibleRowId(0)
-      setMergeData(data)
-      setFileName(fileInfo.name)
-    } else {
-      throw new Error(`Could not import data, invalid formatting`)
+    setError(null)
+    try {
+      if (isValidMergeData(data)) {
+        setVisibleRowId(0)
+        setMergeData(
+          data.map((row) =>
+            Object.fromEntries(
+              Object.entries(row).map(([key, val]) => {
+                if (typeof val === 'string') val = val.trim()
+                return [key, val]
+              }),
+            ),
+          ),
+        )
+        setFileName(fileInfo.name)
+      } else {
+        throw new Error(`Could not import data, invalid formatting`)
+      }
+    } catch (err) {
+      console.error(err)
+      setError(err.message)
     }
   }
 
@@ -36,6 +54,11 @@ const CSVImporter: React.FC = () => {
       <Typography variant="h4" gutterBottom>
         Import merge data
       </Typography>
+      {error && (
+        <Box marginBottom={2}>
+          <Alert severity="error">{error}</Alert>
+        </Box>
+      )}
       <CSVReader
         onFileLoaded={handleFileLoaded}
         parserOptions={parserOptions}

@@ -6,7 +6,9 @@ import {
 } from 'postmark/dist/client/models'
 import { useMergeData } from 'components/MergeData'
 import { useTemplates } from 'components/Templates'
+import { TTemplateDataModelRow } from 'components/Templates/context'
 import { Divider, makeStyles, Typography, Button } from '@material-ui/core'
+import { formatSender, getFinalMergeData } from 'utils/emails'
 
 const useStyles = makeStyles((theme) => ({
   root: {},
@@ -19,7 +21,7 @@ const useStyles = makeStyles((theme) => ({
 
 const EmailPreview: React.FC = () => {
   const { selectedTemplate } = useTemplates()
-  const { templateDataModel, visibleRowId } = useMergeData()
+  const { visibleRowId, finalMergeData } = useMergeData()
   const classes = useStyles()
   const [previewMode, setPreviewMode] = useState('html' as 'text' | 'html')
   const [templatePreviewSubject, setTemplatePreviewSubject] = useState(
@@ -53,20 +55,24 @@ const EmailPreview: React.FC = () => {
   }
 
   const doGetTemplatePreview = (rowId: number) => {
-    if (!templateDataModel || !selectedTemplate) return
-    const testModel = templateDataModel[rowId]
-    getTemplatePreview(selectedTemplate, testModel).then((res) => {
-      setTemplatePreviewSubject(res.Subject?.RenderedContent)
-      setTemplatePreviewHTML(res.HtmlBody?.RenderedContent)
-      setTemplatePreviewText(res.TextBody?.RenderedContent)
-    })
+    if (!finalMergeData || !selectedTemplate) return
+    getTemplatePreview(selectedTemplate, finalMergeData.model[rowId]).then(
+      (res) => {
+        setTemplatePreviewSubject(res.Subject?.RenderedContent)
+        setTemplatePreviewHTML(res.HtmlBody?.RenderedContent)
+        setTemplatePreviewText(res.TextBody?.RenderedContent)
+      },
+    )
   }
 
   useEffect(() => {
     doGetTemplatePreview(visibleRowId)
   }, [visibleRowId])
 
-  if (!templateDataModel || !selectedTemplate) return null
+  if (!finalMergeData || !selectedTemplate) return null
+
+  const { model, globals } = finalMergeData
+  const selectedTemplateData = model[visibleRowId]
 
   return (
     <>
@@ -79,14 +85,21 @@ const EmailPreview: React.FC = () => {
             <strong>Subject:</strong> {templatePreviewSubject}
           </Typography>
           <Typography gutterBottom>
-            <strong>From:</strong>
+            <strong>From:</strong> {formatSender(globals.sender)}
           </Typography>
           <Typography gutterBottom>
-            <strong>To:</strong>
+            <strong>To:</strong> {formatSender(selectedTemplateData.recipient)}
           </Typography>
-          <Typography gutterBottom>
-            <strong>CC:</strong>
-          </Typography>
+          {selectedTemplateData.recipient.cc && (
+            <Typography gutterBottom>
+              <strong>CC:</strong> {selectedTemplateData.recipient.cc}
+            </Typography>
+          )}
+          {selectedTemplateData.recipient.bcc && (
+            <Typography gutterBottom>
+              <strong>BCC:</strong> {selectedTemplateData.recipient.bcc}
+            </Typography>
+          )}
           <Divider />
           {templatePreviewHTML ? (
             <div

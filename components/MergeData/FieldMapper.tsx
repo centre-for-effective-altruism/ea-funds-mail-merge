@@ -25,6 +25,7 @@ const FieldMapper: React.FC = () => {
     setPathMapping,
     visibleRowId,
     fileName,
+    globalData,
   } = useMergeData()
   const { selectedTemplateModel } = useTemplates()
   const paths = selectedTemplateModel ? getPaths(selectedTemplateModel) : null
@@ -68,27 +69,32 @@ const FieldMapper: React.FC = () => {
                     <ChevronRightIcon />
                   </Grid>
                   <Grid item xs={5}>
-                    <Select
-                      value={pathMapping[path] || UNASSIGNED_FIELD}
-                      onChange={(event) => handleSetPathMapping(path, event)}
-                      fullWidth
-                    >
-                      <MenuItem value={UNASSIGNED_FIELD}>
-                        <em>not set</em>
-                      </MenuItem>
-                      <Divider />
-                      <MenuItem disabled>
-                        <FileIcon /> <strong>CSV Import ({fileName})</strong>
-                      </MenuItem>
-                      {columns.map(([key, val]) => (
-                        <MenuItem key={key} value={`${key}`}>
-                          {key} <em>({val})</em>
+                    {globalData && Object.keys(globalData).includes(path) ? (
+                      <>
+                        <Typography>
+                          <WorldIcon /> {globalData[path]}
+                        </Typography>
+                      </>
+                    ) : (
+                      <Select
+                        value={pathMapping[path] || UNASSIGNED_FIELD}
+                        onChange={(event) => handleSetPathMapping(path, event)}
+                        fullWidth
+                      >
+                        <MenuItem value={UNASSIGNED_FIELD}>
+                          <em>not set</em>
                         </MenuItem>
-                      ))}
-                      <MenuItem disabled>
-                        <WorldIcon /> <strong>Global Data</strong>
-                      </MenuItem>
-                    </Select>
+                        <Divider />
+                        <MenuItem disabled>
+                          <FileIcon /> <strong>CSV Import ({fileName})</strong>
+                        </MenuItem>
+                        {columns.map(([key, val]) => (
+                          <MenuItem key={key} value={key}>
+                            {key} <em>{val ? `(${val})` : '— not set'}</em>
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    )}
                   </Grid>
                 </Grid>
               </ListItem>

@@ -1,23 +1,31 @@
 import { useState, createContext, useContext } from 'react'
 import { useLocalStorage, getLocalStorageKeyFactory } from 'utils/hooks'
-import { merge, set, omitBy } from 'lodash'
+import { merge, set, omitBy, mapValues } from 'lodash'
+import {
+  TSenderDetails,
+  getFinalMergeData,
+  TFinalMergeData,
+} from 'utils/emails'
+import { TTemplateDataModel } from 'components/Templates/context'
 
 export type TColumnValue = string | number | boolean | null
 export type TMergeDatum = Record<string, TColumnValue>
 export type TMergeData = Array<TMergeDatum>
 export type TPathMapping = Record<string, string | null>
-export type TTemplateDataModel = Record<string, string | null>[]
-export type TSenderDetails = {
-  first_name: string | null
-  last_name: string | null
-  full_name: string | null
-  email: string | null
+
+export type TGlobalDataModel = {
+  sender: TSenderDetails
+  testing: {
+    email: string | null
+  }
+  [key: string]: string | Record<string, string | null> | null
 }
 
 export type MergeDataContextProps = {
   mergeData: TMergeData | null
   setMergeData: (mergeData: TMergeData | null) => void
   globalData: TMergeDatum | null
+  globalDataModel: TGlobalDataModel
   setGlobalData: (mergeData: TMergeDatum) => void
   pathMapping: TPathMapping
   setPathMapping: (path: string, mergeDataField: string | null) => void
@@ -26,7 +34,26 @@ export type MergeDataContextProps = {
   visibleRowId: number
   setVisibleRowId: (rowId: number) => void
   templateDataModel: TTemplateDataModel | null
+  finalMergeData: TFinalMergeData | null
   resetMergeData: () => void
+  resetGlobalData: () => void
+}
+
+const defaultSender: TSenderDetails = {
+  first_name: null,
+  last_name: null,
+  full_name: null,
+  email: null,
+  cc: null,
+  bcc: null,
+}
+
+const globalDataDefaults = {
+  'sender.first_name': null,
+  'sender.last_name': null,
+  'sender.full_name': null,
+  'sender.email': null,
+  'testing.email': null,
 }
 
 export const isValidMergeData = (arg: unknown[]): arg is TMergeData => {
@@ -50,7 +77,9 @@ export const getTemplateDataModel = (
   pathMapping: TPathMapping,
 ): TTemplateDataModel => {
   return mergeData.map((row) => {
-    const templateModel = {}
+    const templateModel = {
+      recipient: { ...defaultSender },
+    }
     for (const path in pathMapping) {
       const col = pathMapping[path]
       if (col) set(templateModel, path, row[col])
@@ -63,17 +92,20 @@ const initialContext: Readonly<Omit<
   MergeDataContextProps,
   | 'setMergeData'
   | 'setGlobalData'
+  | 'globalDataModel'
   | 'setPathMapping'
   | 'setFileName'
   | 'setVisibleRowId'
   | 'resetMergeData'
+  | 'resetGlobalData'
 >> = {
   mergeData: null,
-  globalData: null,
+  globalData: { ...globalDataDefaults },
   pathMapping: {},
   fileName: null,
   visibleRowId: 0,
   templateDataModel: null,
+  finalMergeData: null,
 }
 
 export const MergeDataContext = createContext(
@@ -92,7 +124,7 @@ export const MergeDataProvider: React.FC = ({ children }) => {
   )
   const [globalData, setGlobalData] = useLocalStorage(
     getLSKey('globalData'),
-    null as TMergeDatum | null,
+    initialContext.globalData,
   )
   const [pathMapping, setPathMapping] = useLocalStorage(
     getLSKey('pathMapping'),
@@ -111,11 +143,29 @@ export const MergeDataProvider: React.FC = ({ children }) => {
 
   const resetMergeData = () => {
     setMergeData(initialContext.mergeData)
-    setGlobalData(initialContext.globalData)
     setPathMapping(initialContext.pathMapping)
     setFileName(initialContext.fileName)
     setVisibleRowId(initialContext.visibleRowId)
   }
+
+  const resetGlobalData = () => {
+    setGlobalData(initialContext.globalData)
+  }
+
+  // maps out the flat string paths of globalData into a fully-specified object
+  // e.g. 'sender.email': 'foo' becomes { sender: {email : 'foo' } }
+  const globalDataModel: TGlobalDataModel = {
+    sender: { ...defaultSender },
+    testing: { email: null },
+  }
+  for (const key in globalData) {
+    set(globalDataModel, key, globalData[key])
+  }
+
+  const finalMergeData =
+    globalDataModel && templateDataModel
+      ? getFinalMergeData(globalDataModel, templateDataModel)
+      : null
 
   const value = {
     mergeData,
@@ -123,11 +173,16 @@ export const MergeDataProvider: React.FC = ({ children }) => {
       setMergeData(mergeData)
     },
     globalData,
+    globalDataModel,
     setGlobalData: (globalDatum: TMergeDatum) => {
       // merge the new data, unless the value === 'false', in which case remove it
-      const newData = omitBy(
-        merge(globalData, globalDatum),
-        (val) => val === false,
+      const newData = mapValues(
+        omitBy(
+          merge(globalData, globalDatum),
+          (val, key) =>
+            val === false && !Object.keys(globalDataDefaults).includes(key),
+        ),
+        (val) => (val === false ? '' : val),
       )
       if (Object.keys(newData).length) {
         setGlobalData({
@@ -149,7 +204,9 @@ export const MergeDataProvider: React.FC = ({ children }) => {
     visibleRowId,
     setVisibleRowId,
     templateDataModel,
+    finalMergeData,
     resetMergeData,
+    resetGlobalData,
   } as MergeDataContextProps
   return <Provider value={value}>{children}</Provider>
 }

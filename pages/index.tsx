@@ -6,9 +6,10 @@ import { useMergeData } from 'components/MergeData'
 
 const Home: React.FC = () => {
   const { selectedTemplate, resetTemplates } = useTemplates()
-  const { mergeData, resetMergeData } = useMergeData()
+  const { mergeData, resetMergeData, resetGlobalData } = useMergeData()
   const reset = () => {
     resetMergeData()
+    resetGlobalData()
     resetTemplates()
   }
   return (

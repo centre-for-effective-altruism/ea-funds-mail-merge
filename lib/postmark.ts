@@ -7,8 +7,8 @@ export default client
 export type EndpointIdentifier =
   // | 'sendEmail'
   // | 'sendEmailBatch'
-  // | 'sendEmailWithTemplate'
-  // | 'sendEmailBatchWithTemplates'
+  | 'sendEmailWithTemplate'
+  | 'sendEmailBatchWithTemplates'
   // | 'getDeliveryStatistics'
   // | 'getBounces'
   // | 'getBounce'
@@ -67,8 +67,8 @@ export type EndpointIdentifier =
 const validEndpoints = [
   // 'sendEmail',
   // 'sendEmailBatch',
-  // 'sendEmailWithTemplate',
-  // 'sendEmailBatchWithTemplates',
+  'sendEmailWithTemplate',
+  'sendEmailBatchWithTemplates',
   // 'getDeliveryStatistics',
   // 'getBounces',
   // 'getBounce',
