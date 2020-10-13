@@ -16,11 +16,16 @@ export default async function PostmarkAPIRoute(
       throw new Error(
         `Bad Request: ${endpoint} is not a valid Postmark endpoint`,
       )
+    let jsonBody
     console.log(body)
-    const postmarkResponse = await postmark[endpoint](id || body || undefined)
-    res.status(200).end(JSON.stringify(postmarkResponse))
+    if (body && typeof body === 'string') jsonBody = JSON.parse(body)
+    console.log(`jsonBody`, jsonBody)
+    const postmarkResponse = await postmark[endpoint](
+      id || jsonBody || undefined,
+    )
+    res.status(200).send(postmarkResponse)
   } catch (err) {
-    console.error(err.message)
-    res.status(500).send(err.message)
+    console.error(`Error: ${err.message}`)
+    res.status(500).send({ error: err.message })
   }
 }

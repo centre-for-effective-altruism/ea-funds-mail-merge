@@ -12,6 +12,7 @@ import { useState } from 'react'
 import { Alert } from '@material-ui/lab'
 import { chunk } from 'lodash'
 import { TemplatedMessage } from 'postmark'
+import { MessageSendingResponse } from 'postmark/dist/client/models'
 
 type LiveSendConfirmationProps = {
   open: boolean
@@ -42,9 +43,7 @@ const LiveSendConfirmation: React.FC<LiveSendConfirmationProps> = ({
   }
 
   const log = async (logMessage: string) => {
-    const newSendingLog = [...sendingLog]
-    newSendingLog.push(logMessage)
-    await setSendingLog(newSendingLog)
+    await setSendingLog((oldLogs) => [...oldLogs, logMessage])
   }
 
   const doSend = async (Messages: TemplatedMessage[]) => {
@@ -54,9 +53,13 @@ const LiveSendConfirmation: React.FC<LiveSendConfirmationProps> = ({
       body: JSON.stringify(Messages),
     })
     if (res.ok) {
-      const resData = await res.json()
+      const resData: MessageSendingResponse = await res.json()
       console.log(resData)
-      await log(resData.Message)
+      if (Array.isArray(resData)) {
+        await Promise.all(
+          resData.map(({ To, Message }) => log(`${To}: ${Message}`)),
+        )
+      }
     }
   }
 
@@ -81,8 +84,7 @@ const LiveSendConfirmation: React.FC<LiveSendConfirmationProps> = ({
       })
       await doSend(Messages)
     }
-
-    // setStatus(LiveSendConfirmationStatus.Sent)
+    setStatus(LiveSendConfirmationStatus.Sent)
   }
 
   return (
@@ -120,30 +122,30 @@ const LiveSendConfirmation: React.FC<LiveSendConfirmationProps> = ({
           </DialogActions>
         </>
       )}
-      {status === LiveSendConfirmationStatus.Sending && (
+      {status !== LiveSendConfirmationStatus.Confirming && (
         <>
           <DialogContent>
             <DialogContentText gutterBottom>
-              Sending {finalMergeData.model.length} emails...
+              {status === LiveSendConfirmationStatus.Sending && (
+                <>Sending {finalMergeData.model.length} emails...</>
+              )}
+              {status === LiveSendConfirmationStatus.Sent && (
+                <>Sent {finalMergeData.model.length} emails</>
+              )}
             </DialogContentText>
             {sendingLog.map((logMessage, i) => (
-              <Alert key={i} severity="info">
-                {logMessage}
-              </Alert>
+              <Box marginBottom={2} key={i}>
+                <Alert severity="info">{logMessage}</Alert>
+              </Box>
             ))}
           </DialogContent>
-        </>
-      )}
-      {status === LiveSendConfirmationStatus.Sent && (
-        <>
-          <DialogContent>
-            <DialogContentText gutterBottom>Sent emails</DialogContentText>
+          {status === LiveSendConfirmationStatus.Sent && (
             <DialogActions>
               <Button onClick={handleClose} color="primary">
                 Close
               </Button>
             </DialogActions>
-          </DialogContent>
+          )}
         </>
       )}
     </Dialog>
